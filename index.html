@@ -14,25 +14,82 @@
     <link rel="stylesheet" type="text/css" href="public/style.css">
 </head>
 <body>
-<div id="app">
+
+<!-- Vue root element. as soon as Vue has mounted v-cload attribute is removed. v-cloak is assigned a style that hides the div -->
+<div id="app" v-cloak>
     <div class="header">
         <h1>Vue.js Poster Store</h1>
+        <!-- submit form and prevent default (prevent page navigation) -->
+        <form class="searchbar" v-on:submit.prevent="onSubmit" >
+            <input v-model="search" placeholder="search for posters" />
+            <input type="submit" value="search" class="btn" />
+        </form>
     </div>
     <div class="main">
         <div class="products">
-            <p>Products go here.</p>
+            <div v-if="loading">
+                Loading...
+            </div>
+            <div class="search-results" v-else >
+                Found {{ results.length }} results for search term {{ lastSearch }}
+            </div>
+            <div class="product" v-for="(item, index) in items">
+                <div>
+                    <div class="product-image">
+                        <img v-bind:src = "item.link" />
+                    </div>
+                </div>
+                <div>
+                    <h4 class="product-title"> {{ item.title }} </h4>
+                    <p>Price <strong>{{ price | currency}} </strong></p>
+                    <button v-on:click="addItem(index)" class="add-to-cart btn">Add to Cart</button>
+                </div>
+
+            </div>
+            <!-- following div allows us to detect when bottom of products list enters viewport -->
+            <div id="product-list-bottom">
+                <div v-if="noMoreItems">No more items</div>
+            </div>
         </div>
         <div class="cart">
             <h2>Shopping Cart</h2>
-            <div>
-                No items in the cart.
+                <!-- cannot apply a transition to list of items, must use transition-group instead! -->
+                <!-- tag allows us to determine type of html element that will enclose the group -->
+            <transition-group name="fade" tag="ul">
+                <!-- transition-group requires a key that uniquely identifies that item in the list -->
+                <li class="cart-item" v-for="item in cart" v-bind:key="item.id" >
+                    <div class="item-title">{{ item.title }}</div>
+                    <span class="item-qty">{{ item.price | currency }} x {{ item.qty }}</span>
+                    <button class="btn" v-on:click="inc(item)">+</button>
+                    <button class="btn" v-on:click="dec(item)">-</button>
+                </li>
+            </transition-group>
+            <transition name="fade">
+                <div v-if="cart.length">
+                    <div>Total: {{total | currency }}</div>
+                </div>
+            </transition>
+            <div v-if="cart.length === 0" class="empty-cart">
+                <div>No items in the cart.</div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Scripts -->
-<script src="/reload/reload.js"></script>
+
+
+<script src="/reload/reload.js"></script>               <!-- live reload for development purposes -->
+
+
+<script src="node_modules/vue/dist/vue.js"></script>    <!-- include the main Vue library!!  -->
+
+<!-- additional libraries for features we want to use in this application -->
+
+<!-- note: vue-resource is no longer recommended ajax. Should use axios instead! -->
+<script src="node_modules/vue-resource/dist/vue-resource.js"></script>
+
+<script src="node_modules/scrollmonitor/scrollMonitor.js"></script>
 <script type="text/javascript" src="public/script.js"></script>
 
 </body>
